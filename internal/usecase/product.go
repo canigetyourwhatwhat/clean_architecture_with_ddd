@@ -1,24 +1,37 @@
 package usecase
 
-import "clean_architecture_with_ddd/internal/entity"
+import (
+	"clean_architecture_with_ddd/internal/entity"
+	"clean_architecture_with_ddd/internal/interface/repository"
+)
 
-type ProductService struct {
+type productService struct {
+	repo repository.Repository
 }
 
-func NewProductService() ProductService {
-	return ProductService{}
+func NewProductService(repo repository.Repository) ProductService {
+	return &productService{
+		repo: repo,
+	}
 }
 
-type ProductServiceInterface interface {
-	GetProduct(productID int, userID int) *entity.Product
-	ListProductsByPage(page int, userID int) []*entity.Product
+type ProductService interface {
+	GetProduct(productID string) (*entity.Product, error)
+	ListProductsByPage(page int) ([]*entity.Product, error)
 }
 
-func (s *ProductService) GetProduct(productID int, userID int) *entity.Product {
-
-	return nil
+func (s *productService) GetProduct(productID string) (*entity.Product, error) {
+	product, err := s.repo.GetProductByCode(productID)
+	if err != nil {
+		// handle error
+	}
+	return product, nil
 }
 
-func (s *ProductService) ListProductsByPage(page int, userID int) []*entity.Product {
-	return nil
+func (s *productService) ListProductsByPage(page int) ([]*entity.Product, error) {
+	products, err := s.repo.ListProductsByPageNum(page)
+	if err != nil {
+		// handle error
+	}
+	return products, nil
 }
