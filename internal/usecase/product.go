@@ -23,7 +23,7 @@ type ProductService interface {
 func (s *productService) GetProduct(productID string) (*entity.Product, error) {
 	product, err := s.repo.GetProductByCode(productID)
 	if err != nil {
-		// handle error
+		return nil, err
 	}
 	return product, nil
 }
@@ -31,7 +31,7 @@ func (s *productService) GetProduct(productID string) (*entity.Product, error) {
 func (s *productService) ListProductsByPage(page int) ([]*entity.Product, error) {
 	products, err := s.repo.ListProductsByPageNum(page)
 	if err != nil {
-		// handle error
+		return nil, err
 	}
 	return products, nil
 }
