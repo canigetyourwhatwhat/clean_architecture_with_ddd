@@ -21,27 +21,32 @@ type CartItemService interface {
 	AddItemInCart(userID int, productInfo CartItemRequest) error
 	DeleteItemFromCart(userID int, productCode string) error
 	UpdateItemsInCart(userID int, productInfo []CartItemRequest) error
+
+	GetPurchasedProduct(userID int) ([]entity.CartItem, error)
 }
 
-func (ci cartItemService) AddItemInCart(userID int, productInfo CartItemRequest) error {
+func (ci *cartItemService) AddItemInCart(userID int, productInfo CartItemRequest) error {
 	// get the current shopping cart
-	cart, err := ci.repo.GetCartByStatusAndUserId(entity.InProgress, userID)
+	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 
 	// Create cart if it doesn't exist
-	if cart == nil {
+	if len(carts) == 0 {
 		err = ci.repo.CreateCart(&entity.Cart{UserId: userID})
 		if err != nil {
 			return err
 		}
 
-		cart, err = ci.repo.GetCartByStatusAndUserId(entity.InProgress, userID)
+		carts, err = ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 		if err != nil {
 			return err
 		}
 	}
+
+	// get current shopping cart
+	cart := carts[0]
 
 	// check if the product is already added
 	cartItem, err := ci.repo.GetCartItemByCodeAndCartId(productInfo.ProductCode, cart.ID)
@@ -99,10 +104,10 @@ func (ci cartItemService) AddItemInCart(userID int, productInfo CartItemRequest)
 	return nil
 }
 
-func (ci cartItemService) DeleteItemFromCart(userID int, code string) error {
+func (ci *cartItemService) DeleteItemFromCart(userID int, code string) error {
 
 	// get the current shopping cart
-	cart, err := ci.repo.GetCartByStatusAndUserId(entity.InProgress, userID)
+	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err == sql.ErrNoRows {
 		return errors.New("cart doesn't exist")
 	}
@@ -111,7 +116,7 @@ func (ci cartItemService) DeleteItemFromCart(userID int, code string) error {
 	}
 
 	// if this product is already added, delete it
-	cartItem, err := ci.repo.GetCartItemByCodeAndCartId(code, cart.ID)
+	cartItem, err := ci.repo.GetCartItemByCodeAndCartId(code, carts[0].ID)
 	if err == sql.ErrNoRows {
 		return errors.New("this product is not in the cart")
 	}
@@ -124,10 +129,10 @@ func (ci cartItemService) DeleteItemFromCart(userID int, code string) error {
 	}
 
 	// calculate price and update cart
-	cart.NetPrice = cart.NetPrice - cartItem.NetPrice
-	cart.TaxPrice = cart.TaxPrice - cartItem.TaxPrice
-	cart.TotalPrice = cart.TotalPrice - cartItem.TotalPrice
-	err = ci.repo.UpdateCart(cart)
+	carts[0].NetPrice = carts[0].NetPrice - cartItem.NetPrice
+	carts[0].TaxPrice = carts[0].TaxPrice - cartItem.TaxPrice
+	carts[0].TotalPrice = carts[0].TotalPrice - cartItem.TotalPrice
+	err = ci.repo.UpdateCart(carts[0])
 	if err != nil {
 		return err
 	}
@@ -135,26 +140,29 @@ func (ci cartItemService) DeleteItemFromCart(userID int, code string) error {
 	return nil
 }
 
-func (ci cartItemService) UpdateItemsInCart(userID int, productInfo []CartItemRequest) error {
+func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo []CartItemRequest) error {
 
 	// get the current shopping cart
-	cart, err := ci.repo.GetCartByStatusAndUserId(entity.InProgress, userID)
+	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err != nil && err != sql.ErrNoRows {
 		return err
 	}
 
-	// create cart if it doesn't exist
-	if cart == nil {
+	// Create cart if it doesn't exist
+	if len(carts) == 0 {
 		err = ci.repo.CreateCart(&entity.Cart{UserId: userID})
 		if err != nil {
 			return err
 		}
 
-		cart, err = ci.repo.GetCartByStatusAndUserId(entity.InProgress, userID)
+		carts, err = ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 		if err != nil {
 			return err
 		}
 	}
+
+	// get current shopping cart
+	cart := carts[0]
 
 	// Delete all the items in the cart
 	err = ci.repo.DeleteCartItemByCartId(cart.ID)
@@ -203,6 +211,36 @@ func (ci cartItemService) UpdateItemsInCart(userID int, productInfo []CartItemRe
 	}
 
 	return nil
+}
+
+func (ci *cartItemService) GetPurchasedProduct(userID int) ([]entity.CartItem, error) {
+
+	// get the current shopping cart
+	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
+	if err != sql.ErrNoRows {
+		return nil, errors.New("no purchased history")
+	}
+	if err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	var cartItems []entity.CartItem
+	for i := range carts {
+		newCartItems, err := ci.repo.ListCartItemByCartId(carts[i].ID)
+		if err != nil {
+			return nil, err
+		}
+		for i := range newCartItems {
+			product, err := ci.repo.GetProductByCode(newCartItems[0].ProductCode)
+			if err != nil {
+				return nil, err
+			}
+			newCartItems[i].Product = *product
+		}
+		cartItems = append(cartItems, newCartItems...)
+	}
+
+	return cartItems, nil
 }
 
 //  ----- request body ------

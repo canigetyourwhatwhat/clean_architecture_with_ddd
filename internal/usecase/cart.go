@@ -20,17 +20,17 @@ type CartService interface {
 }
 
 func (c cartService) GetInProgressCart(userID int) (*entity.Cart, error) {
-	cart, err := c.repo.GetCartByStatusAndUserId(entity.InProgress, userID)
+	cart, err := c.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	// put all the cartItem in this object
-	cartItems, err := c.repo.ListCartItemByCartId(cart.ID)
+	cartItems, err := c.repo.ListCartItemByCartId(cart[0].ID)
 	if err != nil {
 		return nil, err
 	}
-	cart.CartItems = cartItems
+	cart[0].CartItems = cartItems
 
-	return cart, nil
+	return cart[0], nil
 }
