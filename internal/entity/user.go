@@ -7,10 +7,10 @@ import (
 
 type User struct {
 	ID        int       `db:"id"`
-	FirstName string    `db:"firstName" json:"FirstName"`
-	LastName  string    `db:"lastName" json:"LastName"`
-	Username  string    `db:"username" json:"Username"`
-	Password  string    `db:"password" json:"Password"`
+	FirstName string    `db:"firstName"`
+	LastName  string    `db:"lastName"`
+	Username  string    `db:"username"`
+	Password  string    `db:"password"`
 	TaxId     int       `db:"taxId"`
 	CreatedAt time.Time `db:"createdAt"`
 	UpdatedAt time.Time `db:"updatedAt"`

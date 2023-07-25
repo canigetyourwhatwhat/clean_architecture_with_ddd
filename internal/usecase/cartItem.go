@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"clean_architecture_with_ddd/internal/controller/entity/request"
 	"clean_architecture_with_ddd/internal/entity"
 	"clean_architecture_with_ddd/internal/interface/repository"
 	"database/sql"
@@ -11,21 +12,21 @@ type cartItemService struct {
 	repo repository.Repository
 }
 
-func NewCartItemService(repo repository.Repository) CartItemService {
+func NewCartItemService(repo repository.Repository) CartItemUsecase {
 	return &cartItemService{
 		repo: repo,
 	}
 }
 
-type CartItemService interface {
-	AddItemInCart(userID int, productInfo CartItemRequest) error
+type CartItemUsecase interface {
+	AddItemInCart(userID int, productInfo request.CartItem) error
 	DeleteItemFromCart(userID int, productCode string) error
-	UpdateItemsInCart(userID int, productInfo []CartItemRequest) error
+	UpdateItemsInCart(userID int, productInfo request.ListCartItem) error
 
-	GetPurchasedProduct(userID int) ([]entity.CartItem, error)
+	GetPurchasedProducts(userID int) ([]entity.CartItem, error)
 }
 
-func (ci *cartItemService) AddItemInCart(userID int, productInfo CartItemRequest) error {
+func (ci *cartItemService) AddItemInCart(userID int, productInfo request.CartItem) error {
 	// get the current shopping cart
 	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err != nil && err != sql.ErrNoRows {
@@ -140,7 +141,7 @@ func (ci *cartItemService) DeleteItemFromCart(userID int, code string) error {
 	return nil
 }
 
-func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo []CartItemRequest) error {
+func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo request.ListCartItem) error {
 
 	// get the current shopping cart
 	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
@@ -180,19 +181,19 @@ func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo []CartItemR
 
 	// Store list of product with quantity and calculate costs for cart
 	var product *entity.Product
-	for i := range productInfo {
-		product, err = ci.repo.GetProductByCode(productInfo[i].ProductCode)
+	for i := range productInfo.CartItems {
+		product, err = ci.repo.GetProductByCode(productInfo.CartItems[i].ProductCode)
 		if err != nil {
 			return err
 		}
 
 		cartItem := &entity.CartItem{
 			CartId:      cart.ID,
-			Quantity:    productInfo[i].Quantity,
-			ProductCode: productInfo[i].ProductCode,
-			NetPrice:    product.Price * float32(productInfo[i].Quantity),
-			TaxPrice:    product.Price * float32(productInfo[i].Quantity) * taxRate,
-			TotalPrice:  product.Price * float32(productInfo[i].Quantity) * (1 + taxRate),
+			Quantity:    productInfo.CartItems[i].Quantity,
+			ProductCode: productInfo.CartItems[i].ProductCode,
+			NetPrice:    product.Price * float32(productInfo.CartItems[i].Quantity),
+			TaxPrice:    product.Price * float32(productInfo.CartItems[i].Quantity) * taxRate,
+			TotalPrice:  product.Price * float32(productInfo.CartItems[i].Quantity) * (1 + taxRate),
 		}
 
 		err = ci.repo.CreateCartItem(cartItem)
@@ -213,7 +214,7 @@ func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo []CartItemR
 	return nil
 }
 
-func (ci *cartItemService) GetPurchasedProduct(userID int) ([]entity.CartItem, error) {
+func (ci *cartItemService) GetPurchasedProducts(userID int) ([]entity.CartItem, error) {
 
 	// get the current shopping cart
 	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
@@ -245,7 +246,7 @@ func (ci *cartItemService) GetPurchasedProduct(userID int) ([]entity.CartItem, e
 
 //  ----- request body ------
 
-type CartItemRequest struct {
-	ProductCode string
-	Quantity    int
-}
+//type CartItemRequest struct {
+//	ProductCode string
+//	Quantity    int
+//}

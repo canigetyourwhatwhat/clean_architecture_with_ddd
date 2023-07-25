@@ -5,21 +5,21 @@ import (
 	"clean_architecture_with_ddd/internal/interface/repository"
 )
 
-type cartService struct {
+type cartUsecase struct {
 	repo repository.Repository
 }
 
-func NewCartService(repo repository.Repository) CartService {
-	return &cartService{
+func NewCartService(repo repository.Repository) CartUsecase {
+	return &cartUsecase{
 		repo: repo,
 	}
 }
 
-type CartService interface {
+type CartUsecase interface {
 	GetInProgressCart(userID int) (*entity.Cart, error)
 }
 
-func (c cartService) GetInProgressCart(userID int) (*entity.Cart, error) {
+func (c cartUsecase) GetInProgressCart(userID int) (*entity.Cart, error) {
 	cart, err := c.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err != nil {
 		return nil, err

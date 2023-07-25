@@ -11,25 +11,26 @@ type paymentService struct {
 	repo repository.Repository
 }
 
-func NewPaymentService(repo repository.Repository) PaymentService {
+func NewPaymentService(repo repository.Repository) PaymentUsecase {
 	return &paymentService{
 		repo: repo,
 	}
 }
 
-type PaymentService interface {
+type PaymentUsecase interface {
 	CompleteShopping(userID int, method int) error
 }
 
 func (p *paymentService) CompleteShopping(userID int, method int) error {
 	// get the current shopping cart
-	cart, err := p.repo.GetCartByStatusAndUserId(entity.InProgress, userID)
+	carts, err := p.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err == sql.ErrNoRows {
 		return errors.New("there is no shopping cart")
 	}
 	if err != nil {
 		return err
 	}
+	cart := carts[0]
 
 	// create payment and store it
 	payment := entity.Payment{

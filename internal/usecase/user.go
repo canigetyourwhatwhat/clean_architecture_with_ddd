@@ -11,17 +11,17 @@ type userService struct {
 	repo repository.Repository
 }
 
-func NewUserService(repo repository.Repository) UserService {
+func NewUserService(repo repository.Repository) UserUsecase {
 	return &userService{
 		repo: repo,
 	}
 }
 
-type UserService interface {
-	CreateUser(lastName string, firstName string, password string, username string) error
+type UserUsecase interface {
+	CreateUser(firstName string, lastName string, password string, username string) error
 }
 
-func (u *userService) CreateUser(lastName string, firstName string, password string, username string) error {
+func (u *userService) CreateUser(firstName string, lastName string, password string, username string) error {
 
 	// validate if the user is already created
 	if user, err := u.repo.GetUserByUsername(username); err != nil && err != sql.ErrNoRows {

@@ -11,13 +11,13 @@ type orderService struct {
 	repo repository.Repository
 }
 
-func NewOrderService(repo repository.Repository) OrderService {
+func NewOrderService(repo repository.Repository) OrderUsecase {
 	return &orderService{
 		repo: repo,
 	}
 }
 
-type OrderService interface {
+type OrderUsecase interface {
 	GetOrder(userID int, orderId int) (*entity.Order, error)
 }
 

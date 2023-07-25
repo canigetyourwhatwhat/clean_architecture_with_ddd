@@ -10,13 +10,13 @@ type authService struct {
 	repo repository.Repository
 }
 
-func NewAuthService(repo repository.Repository) AuthService {
+func NewAuthService(repo repository.Repository) AuthUsecase {
 	return &authService{
 		repo: repo,
 	}
 }
 
-type AuthService interface {
+type AuthUsecase interface {
 	Login(username string, password string) (sessionID string, err error)
 }
 
