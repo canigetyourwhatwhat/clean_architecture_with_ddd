@@ -8,19 +8,23 @@ import (
 	"net/http"
 )
 
-type OrderHandler struct {
+type orderHandler struct {
 	usecase usecase.OrderUsecase
 	auth    middleware.Auth
 }
 
 func NewOrderHandler(u usecase.OrderUsecase, authorization middleware.Auth) OrderHandler {
-	return OrderHandler{
+	return &orderHandler{
 		usecase: u,
 		auth:    authorization,
 	}
 }
 
-func (oh *OrderHandler) GetOrder(c echo.Context) error {
+type OrderHandler interface {
+	GetOrder(c echo.Context) error
+}
+
+func (oh *orderHandler) GetOrder(c echo.Context) error {
 	// Retrieve input
 	idStr := c.Param("id")
 	userId, err := oh.auth.GetSession(c)

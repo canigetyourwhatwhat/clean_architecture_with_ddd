@@ -8,17 +8,21 @@ import (
 	"net/http"
 )
 
-type AuthHandler struct {
+type authHandler struct {
 	usecase usecase.AuthUsecase
 }
 
 func NewAuthHandler(u usecase.AuthUsecase) AuthHandler {
-	return AuthHandler{
+	return &authHandler{
 		usecase: u,
 	}
 }
 
-func (ah *AuthHandler) Login(c echo.Context) error {
+type AuthHandler interface {
+	Login(c echo.Context) error
+}
+
+func (ah *authHandler) Login(c echo.Context) error {
 	// Retrieve input
 	var body request.LoginInput
 	if err := c.Bind(&body); err != nil {

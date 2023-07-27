@@ -29,7 +29,7 @@ func (s *productService) GetProduct(productID string) (*entity.Product, error) {
 }
 
 func (s *productService) ListProductsByPage(page int) ([]*entity.Product, int, error) {
-	products, err := s.repo.ListProductsByPageNum(page)
+	products, err := s.repo.ListProductsByPageNum(page, entity.PerPage)
 	if err != nil {
 		return nil, -1, err
 	}

@@ -7,19 +7,23 @@ import (
 	"net/http"
 )
 
-type CartHandler struct {
+type cartHandler struct {
 	usecase usecase.CartUsecase
 	auth    middleware.Auth
 }
 
 func NewCartHandler(u usecase.CartUsecase, authorization middleware.Auth) CartHandler {
-	return CartHandler{
+	return &cartHandler{
 		usecase: u,
 		auth:    authorization,
 	}
 }
 
-func (ch *CartHandler) GetInProgressCart(c echo.Context) error {
+type CartHandler interface {
+	GetInProgressCart(c echo.Context) error
+}
+
+func (ch *cartHandler) GetInProgressCart(c echo.Context) error {
 	// Retrieve input
 	userId, err := ch.auth.GetSession(c)
 	if err != nil {

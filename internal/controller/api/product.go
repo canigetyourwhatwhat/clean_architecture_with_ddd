@@ -8,17 +8,22 @@ import (
 	"net/http"
 )
 
-type ProductHandler struct {
+type productHandler struct {
 	usecase usecase.ProductUsecase
 }
 
 func NewProductHandler(u usecase.ProductUsecase) ProductHandler {
-	return ProductHandler{
+	return &productHandler{
 		usecase: u,
 	}
 }
 
-func (ph *ProductHandler) ListProducts(c echo.Context) error {
+type ProductHandler interface {
+	ListProducts(c echo.Context) error
+	GetProductByCode(c echo.Context) error
+}
+
+func (ph *productHandler) ListProducts(c echo.Context) error {
 
 	// Retrieve input
 	q := c.Request().URL.Query()
@@ -42,7 +47,7 @@ func (ph *ProductHandler) ListProducts(c echo.Context) error {
 	return c.JSON(http.StatusOK, res)
 }
 
-func (ph *ProductHandler) GetProductByCode(c echo.Context) error {
+func (ph *productHandler) GetProductByCode(c echo.Context) error {
 
 	// Retrieve input
 	code := c.Param("code")

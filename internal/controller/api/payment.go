@@ -9,19 +9,23 @@ import (
 	"net/http"
 )
 
-type PaymentHandler struct {
+type paymentHandler struct {
 	usecase usecase.PaymentUsecase
 	auth    middleware.Auth
 }
 
 func NewPaymentHandler(u usecase.PaymentUsecase, authorization middleware.Auth) PaymentHandler {
-	return PaymentHandler{
+	return &paymentHandler{
 		usecase: u,
 		auth:    authorization,
 	}
 }
 
-func (ph *PaymentHandler) CreatePayment(c echo.Context) error {
+type PaymentHandler interface {
+	CreatePayment(c echo.Context) error
+}
+
+func (ph *paymentHandler) CreatePayment(c echo.Context) error {
 	// Retrieve input
 	userId, err := ph.auth.GetSession(c)
 	if err != nil {

@@ -41,7 +41,7 @@ func (a *authService) Login(username string, password string) (string, error) {
 	if err = session.SetSessionID(); err != nil {
 		return "", err
 	}
-	if err = a.repo.CreateSession(session); err != nil {
+	if err = a.repo.CreateOrUpdateSession(session); err != nil {
 		return "", err
 	}
 

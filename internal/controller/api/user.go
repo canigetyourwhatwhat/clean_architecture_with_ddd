@@ -8,17 +8,21 @@ import (
 	"net/http"
 )
 
-type UserHandler struct {
+type userHandler struct {
 	usecase usecase.UserUsecase
 }
 
 func NewUserHandler(u usecase.UserUsecase) UserHandler {
-	return UserHandler{
+	return &userHandler{
 		usecase: u,
 	}
 }
 
-func (uh *UserHandler) RegisterUser(c echo.Context) error {
+type UserHandler interface {
+	RegisterUser(c echo.Context) error
+}
+
+func (uh *userHandler) RegisterUser(c echo.Context) error {
 	// Retrieve input
 	var body request.CreateUser
 	if err := c.Bind(&body); err != nil {
@@ -37,3 +41,49 @@ func (uh *UserHandler) RegisterUser(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, "user created")
 }
+
+//type Server interface {
+//	AuthHandler
+//	CartHandler
+//	CartItemHandler
+//	OrderHandler
+//	PaymentHandler
+//	ProductHandler
+//	UserHandler
+//}
+
+type Server struct {
+	ah  AuthHandler
+	ch  CartHandler
+	cih CartItemHandler
+	oh  OrderHandler
+	pah PaymentHandler
+	prh ProductHandler
+	uh  UserHandler
+}
+
+//type TestServer struct {
+//	ah AuthHandler
+//}
+//
+//type TestInterface interface {
+//	Login(c echo.Context) error
+//}
+//
+//func NewTestServer(ah AuthHandler) TestInterface {
+//	return TestServer{
+//		ah: ah,
+//	}
+//}
+//
+//func NewServer(ah AuthHandler, ch CartHandler, cih CartItemHandler, oh OrderHandler, pah PaymentHandler, prh ProductHandler, uh UserHandler) Server {
+//	return Server{
+//		ah:  ah,
+//		ch:  ch,
+//		cih: cih,
+//		oh:  oh,
+//		pah: pah,
+//		prh: prh,
+//		uh:  uh,
+//	}
+//}

@@ -9,19 +9,26 @@ import (
 	"net/http"
 )
 
-type CartItemHandler struct {
+type cartItemHandler struct {
 	usecase usecase.CartItemUsecase
 	auth    middleware.Auth
 }
 
 func NewCartItemHandler(u usecase.CartItemUsecase, auth middleware.Auth) CartItemHandler {
-	return CartItemHandler{
+	return &cartItemHandler{
 		usecase: u,
 		auth:    auth,
 	}
 }
 
-func (cih *CartItemHandler) AddItemToCart(c echo.Context) error {
+type CartItemHandler interface {
+	AddItemToCart(c echo.Context) error
+	RemoveItemFromCart(c echo.Context) error
+	UpdateCart(c echo.Context) error
+	GetPurchasedProducts(c echo.Context) error
+}
+
+func (cih *cartItemHandler) AddItemToCart(c echo.Context) error {
 	// Retrieve input
 	userId, err := cih.auth.GetSession(c)
 	if err != nil {
@@ -47,7 +54,7 @@ func (cih *CartItemHandler) AddItemToCart(c echo.Context) error {
 	return c.JSON(http.StatusOK, "product is added")
 }
 
-func (cih *CartItemHandler) RemoveItemFromCart(c echo.Context) error {
+func (cih *cartItemHandler) RemoveItemFromCart(c echo.Context) error {
 	// Retrieve input
 	userId, err := cih.auth.GetSession(c)
 	if err != nil {
@@ -73,7 +80,7 @@ func (cih *CartItemHandler) RemoveItemFromCart(c echo.Context) error {
 	return c.JSON(http.StatusOK, "product is removed")
 }
 
-func (cih *CartItemHandler) UpdateCart(c echo.Context) error {
+func (cih *cartItemHandler) UpdateCart(c echo.Context) error {
 	// Retrieve input
 	userId, err := cih.auth.GetSession(c)
 	if err != nil {
@@ -99,7 +106,7 @@ func (cih *CartItemHandler) UpdateCart(c echo.Context) error {
 	return c.JSON(http.StatusOK, "cart is updated")
 }
 
-func (cih *CartItemHandler) GetPurchasedProducts(c echo.Context) error {
+func (cih *cartItemHandler) GetPurchasedProducts(c echo.Context) error {
 	// Retrieve input
 	userId, err := cih.auth.GetSession(c)
 	if err != nil {
