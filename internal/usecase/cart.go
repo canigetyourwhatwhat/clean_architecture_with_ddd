@@ -3,6 +3,7 @@ package usecase
 import (
 	"clean_architecture_with_ddd/internal/entity"
 	"clean_architecture_with_ddd/internal/interface/repository"
+	"errors"
 )
 
 type cartUsecase struct {
@@ -23,6 +24,9 @@ func (c cartUsecase) GetInProgressCart(userID int) (*entity.Cart, error) {
 	cart, err := c.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
 	if err != nil {
 		return nil, err
+	}
+	if len(cart) == 0 {
+		return nil, errors.New("cart is empty")
 	}
 
 	// put all the cartItem in this object

@@ -27,7 +27,7 @@ type OrderHandler interface {
 func (oh *orderHandler) GetOrder(c echo.Context) error {
 	// Retrieve input
 	idStr := c.Param("id")
-	userId, err := oh.auth.GetSession(c)
+	userId, err := oh.auth.ValidateSession(c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}

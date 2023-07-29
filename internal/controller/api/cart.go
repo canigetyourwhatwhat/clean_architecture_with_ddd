@@ -25,15 +25,15 @@ type CartHandler interface {
 
 func (ch *cartHandler) GetInProgressCart(c echo.Context) error {
 	// Retrieve input
-	userId, err := ch.auth.GetSession(c)
+	userId, err := ch.auth.ValidateSession(c)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	// pass to usecase
 	cart, err := ch.usecase.GetInProgressCart(userId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, cart)

@@ -8,4 +8,6 @@ type Repository interface {
 	CartItemRepository
 	PaymentRepository
 	OrderRepository
+
+	GetTaxRateById(id int) (float32, error)
 }

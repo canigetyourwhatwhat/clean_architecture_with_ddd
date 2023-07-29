@@ -2,20 +2,20 @@ package repository
 
 import "clean_architecture_with_ddd/internal/entity"
 
-func (r Repo) ListCartsByStatusAndUserId(status entity.CartStatus, userId int) (c []*entity.Cart, err error) {
-	err = r.DB.Get(c, "select * from carts where userId = ? and status = ?", userId, status)
-	if err != nil {
+func (r Repo) ListCartsByStatusAndUserId(status entity.CartStatus, userId int) ([]*entity.Cart, error) {
+	var c []*entity.Cart
+	if err := r.DB.Select(&c, "select * from carts where userId = ? and status = ?", userId, status); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
-func (r Repo) GetCartById(id int) (c *entity.Cart, err error) {
-	err = r.DB.Select(c, "select * from carts where id = ?", id)
-	if err != nil {
+func (r Repo) GetCartById(id int) (*entity.Cart, error) {
+	var c entity.Cart
+	if err := r.DB.Get(&c, "select * from carts where id = ?", id); err != nil {
 		return nil, err
 	}
-	return c, nil
+	return &c, nil
 }
 
 func (r Repo) UpdateCart(cart *entity.Cart) error {

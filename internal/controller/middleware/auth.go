@@ -18,14 +18,15 @@ func NewAuth(repo repository.Repository) Auth {
 }
 
 type Auth interface {
-	GetSession(c echo.Context) (int, error)
+	ValidateSession(c echo.Context) (int, error)
 }
 
-func (a *auth) GetSession(c echo.Context) (int, error) {
+func (a *auth) ValidateSession(c echo.Context) (int, error) {
 	sessionKey := c.Request().Header.Get("session")
 	if sessionKey == "" {
 		return -1, errors.New("session is missing")
 	}
+
 	session, err := a.repo.GetSessionById(sessionKey)
 	if err != nil {
 		return -1, errors.New("session is not valid")

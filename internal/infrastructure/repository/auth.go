@@ -27,7 +27,7 @@ func (r Repo) CreateOrUpdateSession(session *entity.Session) error {
 
 func (r Repo) GetSessionById(id string) (*entity.Session, error) {
 	var s entity.Session
-	err := r.DB.Get(s, "select * from sessions where id = ?", id)
+	err := r.DB.Get(&s, "select * from sessions where id = ?", id)
 	if err != nil {
 		return nil, err
 	}

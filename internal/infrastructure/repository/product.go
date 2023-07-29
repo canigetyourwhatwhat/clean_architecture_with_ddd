@@ -2,13 +2,12 @@ package repository
 
 import "clean_architecture_with_ddd/internal/entity"
 
-func (r Repo) GetProductByCode(code string) (p *entity.Product, err error) {
-
-	err = r.DB.Get(&p, "select * from Products where code = ?", p.Code)
-	if err != nil {
+func (r Repo) GetProductByCode(code string) (*entity.Product, error) {
+	var p entity.Product
+	if err := r.DB.Get(&p, "select * from products where code = ?", code); err != nil {
 		return nil, err
 	}
-	return p, nil
+	return &p, nil
 }
 
 func (r Repo) GetProductCount() (int, error) {

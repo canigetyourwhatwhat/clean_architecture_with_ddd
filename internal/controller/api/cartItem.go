@@ -30,9 +30,9 @@ type CartItemHandler interface {
 
 func (cih *cartItemHandler) AddItemToCart(c echo.Context) error {
 	// Retrieve input
-	userId, err := cih.auth.GetSession(c)
+	userId, err := cih.auth.ValidateSession(c)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	var body request.CartItem
@@ -42,7 +42,7 @@ func (cih *cartItemHandler) AddItemToCart(c echo.Context) error {
 
 	// validate input
 	if err = inputPort.CartItem(body.ProductCode, body.Quantity); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	// pass to usecase
@@ -56,25 +56,22 @@ func (cih *cartItemHandler) AddItemToCart(c echo.Context) error {
 
 func (cih *cartItemHandler) RemoveItemFromCart(c echo.Context) error {
 	// Retrieve input
-	userId, err := cih.auth.GetSession(c)
+	userId, err := cih.auth.ValidateSession(c)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	var body request.CartItem
-	if err = c.Bind(&body); err != nil {
-		return c.JSON(http.StatusBadRequest, "failed to bind the struct with the request body: "+err.Error())
-	}
+	code := c.Param("code")
 
 	// validate input
-	if err = inputPort.ProductCode(body.ProductCode); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+	if err = inputPort.ProductCode(code); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	// pass to usecase
-	err = cih.usecase.DeleteItemFromCart(userId, body.ProductCode)
+	err = cih.usecase.DeleteItemFromCart(userId, code)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, "product is removed")
@@ -82,7 +79,7 @@ func (cih *cartItemHandler) RemoveItemFromCart(c echo.Context) error {
 
 func (cih *cartItemHandler) UpdateCart(c echo.Context) error {
 	// Retrieve input
-	userId, err := cih.auth.GetSession(c)
+	userId, err := cih.auth.ValidateSession(c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
@@ -108,7 +105,7 @@ func (cih *cartItemHandler) UpdateCart(c echo.Context) error {
 
 func (cih *cartItemHandler) GetPurchasedProducts(c echo.Context) error {
 	// Retrieve input
-	userId, err := cih.auth.GetSession(c)
+	userId, err := cih.auth.ValidateSession(c)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, err)
 	}
@@ -116,7 +113,7 @@ func (cih *cartItemHandler) GetPurchasedProducts(c echo.Context) error {
 	// pass to usecase
 	cartItems, err := cih.usecase.GetPurchasedProducts(userId)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, cartItems)

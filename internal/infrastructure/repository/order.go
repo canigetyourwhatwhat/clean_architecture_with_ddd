@@ -7,11 +7,12 @@ type OrderRepository interface {
 	CreateOrder(order entity.Order) error
 }
 
-func (r Repo) GetOrderById(id int) (o *entity.Order, err error) {
-	if err = r.DB.Get(o, "select * from orders where id = ?", id); err != nil {
+func (r Repo) GetOrderById(id int) (*entity.Order, error) {
+	var o entity.Order
+	if err := r.DB.Get(&o, "select * from orders where id = ?", id); err != nil {
 		return nil, err
 	}
-	return o, nil
+	return &o, nil
 }
 
 func (r Repo) CreateOrder(order entity.Order) error {

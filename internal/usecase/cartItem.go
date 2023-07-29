@@ -62,7 +62,11 @@ func (ci *cartItemService) AddItemInCart(userID int, productInfo request.CartIte
 	}
 
 	// get tax rate
-	taxRate, err := ci.repo.GetTaxFromUserByTaxId(userID)
+	taxId, err := ci.repo.GetTaxFromUserByTaxId(userID)
+	if err != nil {
+		return err
+	}
+	tax, err := ci.repo.GetTaxRateById(taxId)
 	if err != nil {
 		return err
 	}
@@ -70,8 +74,8 @@ func (ci *cartItemService) AddItemInCart(userID int, productInfo request.CartIte
 	// if already this product is added
 	if cartItem != nil {
 		cart.NetPrice = cart.NetPrice - cartItem.NetPrice + product.Price*float32(productInfo.Quantity)
-		cart.TaxPrice = cart.TaxPrice - cartItem.TaxPrice + product.Price*float32(productInfo.Quantity)*taxRate
-		cart.TotalPrice = cart.TotalPrice - cartItem.TotalPrice + product.Price*float32(productInfo.Quantity)*(1+taxRate)
+		cart.TaxPrice = cart.TaxPrice - cartItem.TaxPrice + product.Price*float32(productInfo.Quantity)*tax
+		cart.TotalPrice = cart.TotalPrice - cartItem.TotalPrice + product.Price*float32(productInfo.Quantity)*(1+tax)
 
 		err = ci.repo.DeleteCartItemById(cartItem.ID)
 		if err != nil {
@@ -79,8 +83,8 @@ func (ci *cartItemService) AddItemInCart(userID int, productInfo request.CartIte
 		}
 	} else {
 		cart.NetPrice = cart.NetPrice + product.Price*float32(productInfo.Quantity)
-		cart.TaxPrice = cart.TaxPrice + product.Price*float32(productInfo.Quantity)*taxRate
-		cart.TotalPrice = cart.TotalPrice + product.Price*float32(productInfo.Quantity)*(1+taxRate)
+		cart.TaxPrice = cart.TaxPrice + product.Price*float32(productInfo.Quantity)*tax
+		cart.TotalPrice = cart.TotalPrice + product.Price*float32(productInfo.Quantity)*(1+tax)
 	}
 
 	err = ci.repo.UpdateCart(cart)
@@ -109,7 +113,7 @@ func (ci *cartItemService) DeleteItemFromCart(userID int, code string) error {
 
 	// get the current shopping cart
 	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
-	if err == sql.ErrNoRows {
+	if len(carts) == 0 {
 		return errors.New("cart doesn't exist")
 	}
 	if err != nil {
@@ -174,7 +178,11 @@ func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo request.Lis
 	cart.TotalPrice = 0
 
 	// get tax rate
-	taxRate, err := ci.repo.GetTaxFromUserByTaxId(userID)
+	taxId, err := ci.repo.GetTaxFromUserByTaxId(userID)
+	if err != nil {
+		return err
+	}
+	tax, err := ci.repo.GetTaxRateById(taxId)
 	if err != nil {
 		return err
 	}
@@ -192,8 +200,8 @@ func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo request.Lis
 			Quantity:    productInfo.CartItems[i].Quantity,
 			ProductCode: productInfo.CartItems[i].ProductCode,
 			NetPrice:    product.Price * float32(productInfo.CartItems[i].Quantity),
-			TaxPrice:    product.Price * float32(productInfo.CartItems[i].Quantity) * taxRate,
-			TotalPrice:  product.Price * float32(productInfo.CartItems[i].Quantity) * (1 + taxRate),
+			TaxPrice:    product.Price * float32(productInfo.CartItems[i].Quantity) * tax,
+			TotalPrice:  product.Price * float32(productInfo.CartItems[i].Quantity) * (1 + tax),
 		}
 
 		err = ci.repo.CreateCartItem(cartItem)
@@ -217,11 +225,11 @@ func (ci *cartItemService) UpdateItemsInCart(userID int, productInfo request.Lis
 func (ci *cartItemService) GetPurchasedProducts(userID int) ([]entity.CartItem, error) {
 
 	// get the current shopping cart
-	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
-	if err != sql.ErrNoRows {
+	carts, err := ci.repo.ListCartsByStatusAndUserId(entity.Completed, userID)
+	if len(carts) == 0 {
 		return nil, errors.New("no purchased history")
 	}
-	if err != nil && err != sql.ErrNoRows {
+	if err != nil {
 		return nil, err
 	}
 
@@ -236,7 +244,7 @@ func (ci *cartItemService) GetPurchasedProducts(userID int) ([]entity.CartItem, 
 			if err != nil {
 				return nil, err
 			}
-			newCartItems[i].Product = *product
+			newCartItems[i].Product = product
 		}
 		cartItems = append(cartItems, newCartItems...)
 	}

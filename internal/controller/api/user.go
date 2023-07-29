@@ -31,12 +31,12 @@ func (uh *userHandler) RegisterUser(c echo.Context) error {
 
 	// validate input
 	if err := inputPort.CreateUser(body.FirstName, body.LastName, body.Password, body.Username); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
+		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	// pass to usecase
 	if err := uh.usecase.CreateUser(body.FirstName, body.LastName, body.Password, body.Username); err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, "user created")

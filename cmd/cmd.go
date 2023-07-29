@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"clean_architecture_with_ddd/config"
+	"clean_architecture_with_ddd/database"
 	"clean_architecture_with_ddd/internal/controller/api"
 	"clean_architecture_with_ddd/internal/controller/middleware"
 	"clean_architecture_with_ddd/internal/infrastructure/repository"
@@ -59,13 +60,15 @@ func connectDB(cfg *config.Config) (*sqlx.DB, error) {
 		AllowNativePasswords: true,
 	}
 	db, err := sqlx.Open("mysql", connectDbStr.FormatDSN())
-
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to connect Database")
 	}
 	if err = db.Ping(); err != nil {
 		return nil, errors.Wrap(err, "ping to DB is failed")
 	}
+
+	database.CreateTable(db)
+	database.SeedTable(db)
 
 	return db, nil
 }

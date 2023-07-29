@@ -3,7 +3,6 @@ package usecase
 import (
 	"clean_architecture_with_ddd/internal/entity"
 	"clean_architecture_with_ddd/internal/interface/repository"
-	"database/sql"
 	"errors"
 )
 
@@ -24,7 +23,7 @@ type PaymentUsecase interface {
 func (p *paymentService) CompleteShopping(userID int, method int) error {
 	// get the current shopping cart
 	carts, err := p.repo.ListCartsByStatusAndUserId(entity.InProgress, userID)
-	if err == sql.ErrNoRows {
+	if len(carts) == 0 {
 		return errors.New("there is no shopping cart")
 	}
 	if err != nil {

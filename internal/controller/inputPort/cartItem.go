@@ -6,7 +6,7 @@ import (
 )
 
 func CartItem(productCode string, quantity int) error {
-	if productCode == "" || quantity > 0 {
+	if productCode == "" || quantity < 1 {
 		return errors.New("input is invalid")
 	}
 	return nil

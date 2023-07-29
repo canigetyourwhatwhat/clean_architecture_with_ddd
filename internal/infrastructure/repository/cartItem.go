@@ -11,19 +11,16 @@ type CartItemRepository interface {
 	CreateCartItem(ci *entity.CartItem) error
 }
 
-func (r Repo) GetCartItemByCodeAndCartId(code string, cartID int) (ci *entity.CartItem, err error) {
-	query := `select * from cartItems where cartId = ? and productCode = ?`
-	err = r.DB.Get(&ci, query, cartID, code)
-	if err != nil {
+func (r Repo) GetCartItemByCodeAndCartId(code string, cartID int) (*entity.CartItem, error) {
+	var ci entity.CartItem
+	if err := r.DB.Get(&ci, "select * from cartItems where cartId = ? and productCode = ?", cartID, code); err != nil {
 		return nil, err
 	}
-	return ci, nil
+	return &ci, nil
 }
 
 func (r Repo) ListCartItemByCartId(id int) (ci []entity.CartItem, err error) {
-	query := `select * from cartItems where cartId = ?`
-	err = r.DB.Select(&ci, query, id)
-	if err != nil {
+	if err = r.DB.Select(&ci, "select * from cartItems where cartId = ?", id); err != nil {
 		return nil, err
 	}
 	return ci, nil
