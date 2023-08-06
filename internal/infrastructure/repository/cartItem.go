@@ -2,15 +2,6 @@ package repository
 
 import "clean_architecture_with_ddd/internal/entity"
 
-type CartItemRepository interface {
-	GetCartItemByCodeAndCartId(code string, cartID int) (*entity.CartItem, error)
-	ListCartItemByCartId(id int) ([]entity.CartItem, error)
-
-	DeleteCartItemById(id int) error
-	DeleteCartItemByCartId(id int) error
-	CreateCartItem(ci *entity.CartItem) error
-}
-
 func (r Repo) GetCartItemByCodeAndCartId(code string, cartID int) (*entity.CartItem, error) {
 	var ci entity.CartItem
 	if err := r.DB.Get(&ci, "select * from cartItems where cartId = ? and productCode = ?", cartID, code); err != nil {
