@@ -28,6 +28,34 @@ type CartItemHandler interface {
 	GetPurchasedProducts(c echo.Context) error
 }
 
+func (cih *cartItemHandler) UpdateCart(c echo.Context) error {
+
+	// Retrieve input
+	var body request.ListCartItem
+	if err := c.Bind(&body); err != nil {
+		return c.JSON(http.StatusBadRequest, "failed to bind the struct with the request body: "+err.Error())
+	}
+
+	// middleware validation
+	userId, err := cih.auth.ValidateSession(c)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	// validate input
+	if err = inputPort.ListCartItem(body); err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
+
+	// pass to usecase
+	err = cih.usecase.UpdateItemsInCart(userId, body)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err)
+	}
+
+	return c.JSON(http.StatusOK, "cart is updated")
+}
+
 func (cih *cartItemHandler) AddItemToCart(c echo.Context) error {
 	// Retrieve input
 	userId, err := cih.auth.ValidateSession(c)
@@ -75,32 +103,6 @@ func (cih *cartItemHandler) RemoveItemFromCart(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, "product is removed")
-}
-
-func (cih *cartItemHandler) UpdateCart(c echo.Context) error {
-	// Retrieve input
-	userId, err := cih.auth.ValidateSession(c)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, err)
-	}
-
-	var body request.ListCartItem
-	if err = c.Bind(&body); err != nil {
-		return c.JSON(http.StatusBadRequest, "failed to bind the struct with the request body: "+err.Error())
-	}
-
-	// validate input
-	if err = inputPort.ListCartItem(body); err != nil {
-		return c.JSON(http.StatusBadRequest, err)
-	}
-
-	// pass to usecase
-	err = cih.usecase.UpdateItemsInCart(userId, body)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, err)
-	}
-
-	return c.JSON(http.StatusOK, "cart is updated")
 }
 
 func (cih *cartItemHandler) GetPurchasedProducts(c echo.Context) error {

@@ -75,7 +75,7 @@ func connectDB(cfg *config.Config) (*sqlx.DB, error) {
 
 func buildServer(_ *config.Config, db *sqlx.DB) (api.AuthHandler, api.CartHandler, api.CartItemHandler, api.OrderHandler, api.PaymentHandler, api.ProductHandler, api.UserHandler) {
 
-	// Build a repository
+	// Build external devices
 	repo := repository.NewRepo(db)
 
 	// Put them in each usecase instances
@@ -87,7 +87,7 @@ func buildServer(_ *config.Config, db *sqlx.DB) (api.AuthHandler, api.CartHandle
 	productUsecase := usecase.NewProductService(repo)
 	userUsecase := usecase.NewUserService(repo)
 
-	// external usecase instances
+	// controller middleware instances
 	middlewareAuthUsecase := middleware.NewAuth(repo)
 
 	// Create handlers for APIs
@@ -98,12 +98,6 @@ func buildServer(_ *config.Config, db *sqlx.DB) (api.AuthHandler, api.CartHandle
 	paymentHandler := api.NewPaymentHandler(paymentUsecase, middlewareAuthUsecase)
 	productHandler := api.NewProductHandler(productUsecase)
 	userHandler := api.NewUserHandler(userUsecase)
-
-	// Put them in one big service
-	//server := api.NewServer(authHandler, cartHandler, cartItemHandler, orderHandler, paymentHandler, productHandler, userHandler)
-	//
-	//ts := api.NewTestServer(authHandler)
-	//ts.
 
 	return authHandler, cartHandler, cartItemHandler, orderHandler, paymentHandler, productHandler, userHandler
 }
